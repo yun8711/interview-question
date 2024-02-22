@@ -45,6 +45,25 @@ console.log(b); // 2
 
 
 
+### Symbol
+
+不能使用 new 关键字创建
+
+主要用途是作为对象的属性键，以避免属性名冲突
+
+```js
+let sym = Symbol('key');
+let obj = {
+  [sym]: 'value'
+};
+
+console.log(obj[sym]);  // 输出 "value"
+```
+
+这样的属性不会出现在常规的遍历操作中（如 for...in 循环或 Object.keys 方法），但可以通过 `Object.getOwnPropertySymbols` 方法获取到
+
+
+
 ### NaN
 
 `typeof NaN`返回number，但是它不等于自己

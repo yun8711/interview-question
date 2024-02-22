@@ -1,8 +1,11 @@
-[TOC]
+---
+outline: deep
 
+---
 
+# 手撕代码
 
-### 防抖函数
+### 防抖
 
 ```js
 function debounce(func,duration=500){
@@ -19,11 +22,9 @@ function debounce(func,duration=500){
 }
 ```
 
+<br/>
 
-
-### 节流函数
-
-### 
+### 节流
 
 ```js
 // 节流函数：时间戳版
@@ -55,9 +56,7 @@ function throttle(fn, wait) {
 }
 ```
 
-
-
-
+<br/>
 
 ### instanceof 的实现
 
@@ -77,7 +76,7 @@ function myInstanceof(left,right){
 }
 ```
 
-
+<br/>
 
 ### new 操作符
 
@@ -113,7 +112,7 @@ let obj = myNew(One, "XiaoMing", "18");
 console.log("newObj:", obj);
 ```
 
-
+<br/>
 
 ### ajax、promise、async/await
 
@@ -152,7 +151,7 @@ const ajax = (method, url, data, success, fail) => {
 }
 ```
 
-
+<br/>
 
 ### Promise 封装 ajax
 
@@ -186,10 +185,90 @@ function getJson(url) {
 }
 ```
 
+<br/>
 
+### 深拷贝
 
-### Vue2 对数组方法的重写
-
+```js
+function deepCopy(data, hash = new WeakMap()) {
+      if(typeof data !== 'object' || data === null){
+            throw new TypeError('传入参数不是对象')
+        }
+      // 判断传入的待拷贝对象的引用是否存在于hash中
+      if(hash.has(data)) {
+            return hash.get(data)
+        }
+      let newData = {};
+      const dataKeys = Object.keys(data);
+      dataKeys.forEach(value => {
+         const currentDataValue = data[value];
+         // 基本数据类型的值和函数直接赋值拷贝 
+         if (typeof currentDataValue !== "object" || currentDataValue === null) {
+              newData[value] = currentDataValue;
+          } else if (Array.isArray(currentDataValue)) {
+             // 实现数组的深拷贝
+            newData[value] = [...currentDataValue];
+          } else if (currentDataValue instanceof Set) {
+             // 实现set数据的深拷贝
+             newData[value] = new Set([...currentDataValue]);
+          } else if (currentDataValue instanceof Map) {
+             // 实现map数据的深拷贝
+             newData[value] = new Map([...currentDataValue]);
+          } else { 
+             // 将这个待拷贝对象的引用存于hash中
+             hash.set(data,data)
+             // 普通对象则递归赋值
+             newData[value] = deepCopy(currentDataValue, hash);
+          } 
+       }); 
+      return newData;
+  }
 ```
+
+初次调用deepCopy时，参数会创建一个WeakMap结构的对象，这种数据结构的特点之一是，存储键值对中的健必须是对象类型。
+
+- 首次调用时，weakMap为空，不会走上面那个`if(hash.has())`语句，如果待拷贝对象中有属性也为对象时，则将该待拷贝对象存入weakMap中，此时的健值和健名都是对该待拷贝对象的引用
+- 然后递归调用该函数
+- 再次进入该函数，传入了上一个待拷贝对象的对象属性的引用和存储了上一个待拷贝对象引用的weakMap，因为如果是循环引用产生的闭环，那么这两个引用是指向相同的对象的，因此会进入if(hash.has())语句内，然后return，退出函数，所以不会一直递归进栈，以此防止栈溢出。
+
+<br/>
+
+### 实现一个发布订阅模式
+
+PubSub 类有三个方法：
+
+- subscribe 方法用于订阅事件
+- unsubscribe 方法用于取消订阅
+- publish 方法用于发布事件。每个事件都有一个回调函数数组，当事件被发布时，所有订阅该事件的回调函数都会被调用。
+
+```js
+class PubSub {
+  constructor() {
+    this.subscribers = {};
+  }
+
+  // 订阅事件
+  subscribe(event, callback) {
+    if (!this.subscribers[event]) {
+      this.subscribers[event] = [];
+    }
+    this.subscribers[event].push(callback);
+  }
+
+  // 取消订阅
+  unsubscribe(event, callback) {
+    if (!this.subscribers[event]) return;
+    const index = this.subscribers[event].indexOf(callback);
+    if (index !== -1) {
+      this.subscribers[event].splice(index, 1);
+    }
+  }
+
+  // 发布事件
+  publish(event, data) {
+    if (!this.subscribers[event]) return;
+    this.subscribers[event].forEach(callback => callback(data));
+  }
+}
 ```
 

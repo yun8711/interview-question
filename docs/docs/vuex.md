@@ -1,7 +1,6 @@
 ---
-outline: false
+outline: deep
 ---
-
 
 
 
